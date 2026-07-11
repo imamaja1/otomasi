@@ -1,0 +1,130 @@
+{
+	"info": {
+		"name": "Automation Server",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{ "key": "base_url", "value": "https://otomasi.punyaku.online" },
+		{ "key": "api_key", "value": "" }
+	],
+	"item": [
+		{
+			"name": "1. Setup",
+			"item": [
+				{
+					"name": "Register Aplikasi",
+					"event": [{"listen":"test","script":{"exec":["var j=pm.response.json();if(j.id)pm.collectionVariables.set('app_id',j.id)"],"type":"text/javascript"}}],
+					"request": {
+						"method": "POST",
+						"header": [{"key":"Content-Type","value":"application/json"}],
+						"body": {"mode":"raw","raw":"{\"name\":\"MyApp\",\"description\":\"Testing\"}"},
+						"url": {"raw":"{{base_url}}/api/v1/auth/register","host":["{{base_url}}"],"path":["api","v1","auth","register"]}
+					}
+				},
+				{
+					"name": "Generate API Key",
+					"event": [{"listen":"test","script":{"exec":["var j=pm.response.json();if(j.key)pm.collectionVariables.set('api_key',j.key)"],"type":"text/javascript"}}],
+					"request": {
+						"method": "POST",
+						"header": [{"key":"Content-Type","value":"application/json"}],
+						"body": {"mode":"raw","raw":"{\"applicationId\":1,\"name\":\"test-key\",\"permissions\":[\"whatsapp\",\"email\",\"notification\",\"webhook\",\"ai\",\"recommend\"]}"},
+						"url": {"raw":"{{base_url}}/api/v1/auth/api-key","host":["{{base_url}}"],"path":["api","v1","auth","api-key"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. System",
+			"item": [
+				{"name":"Ping","request":{"method":"GET","url":{"raw":"{{base_url}}/ping","host":["{{base_url}}"],"path":["ping"]}}},
+				{"name":"Health","request":{"method":"GET","url":{"raw":"{{base_url}}/health","host":["{{base_url}}"],"path":["health"]}}},
+				{"name":"Metrics","request":{"method":"GET","url":{"raw":"{{base_url}}/api/v1/system/metrics","host":["{{base_url}}"],"path":["api","v1","system","metrics"]}}},
+				{"name":"Stats Dashboard","request":{"method":"GET","header":[{"key":"x-api-key","value":"{{api_key}}"}],"url":{"raw":"{{base_url}}/api/v1/system/stats","host":["{{base_url}}"],"path":["api","v1","system","stats"]}}}
+			]
+		},
+		{
+			"name": "3. WhatsApp",
+			"item": [
+				{
+					"name": "Lihat QR Code (gambar)",
+					"request": {
+						"method": "GET",
+						"header": [{"key":"x-api-key","value":"{{api_key}}"}],
+						"url": {"raw":"{{base_url}}/api/v1/whatsapp/qr-image","host":["{{base_url}}"],"path":["api","v1","whatsapp","qr-image"]}
+					}
+				},
+				{
+					"name": "Ambil QR String",
+					"request": {
+						"method": "GET",
+						"header": [{"key":"x-api-key","value":"{{api_key}}"}],
+						"url": {"raw":"{{base_url}}/api/v1/whatsapp/qr","host":["{{base_url}}"],"path":["api","v1","whatsapp","qr"]}
+					}
+				},
+				{
+					"name": "Cek Status WA",
+					"request": {
+						"method": "GET",
+						"header": [{"key":"x-api-key","value":"{{api_key}}"}],
+						"url": {"raw":"{{base_url}}/api/v1/whatsapp/status","host":["{{base_url}}"],"path":["api","v1","whatsapp","status"]}
+					}
+				},
+				{
+					"name": "Kirim Pesan WA",
+					"request": {
+						"method": "POST",
+						"header": [{"key":"Content-Type","value":"application/json"},{"key":"x-api-key","value":"{{api_key}}"}],
+						"body": {"mode":"raw","raw":"{\"to\":\"6281234567890\",\"message\":\"Halo dari Automation Server!\"}"},
+						"url": {"raw":"{{base_url}}/api/v1/whatsapp/send","host":["{{base_url}}"],"path":["api","v1","whatsapp","send"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Notification",
+			"item": [
+				{
+					"name": "Kirim via WhatsApp",
+					"request": {
+						"method": "POST",
+						"header": [{"key":"Content-Type","value":"application/json"},{"key":"x-api-key","value":"{{api_key}}"}],
+						"body": {"mode":"raw","raw":"{\"channel\":\"whatsapp\",\"recipient\":\"6281234567890\",\"title\":\"Halo\",\"body\":\"Pesan test\"}"},
+						"url": {"raw":"{{base_url}}/api/v1/notification/send","host":["{{base_url}}"],"path":["api","v1","notification","send"]}
+					}
+				},
+				{
+					"name": "Kirim via Email",
+					"request": {
+						"method": "POST",
+						"header": [{"key":"Content-Type","value":"application/json"},{"key":"x-api-key","value":"{{api_key}}"}],
+						"body": {"mode":"raw","raw":"{\"channel\":\"email\",\"recipient\":\"user@mail.com\",\"title\":\"Test\",\"body\":\"Hello\"}"},
+						"url": {"raw":"{{base_url}}/api/v1/notification/send","host":["{{base_url}}"],"path":["api","v1","notification","send"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Recommendation",
+			"item": [
+				{"name":"Travel","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"x-api-key","value":"{{api_key}}"}],"body":{"mode":"raw","raw":"{\"interest\":\"saya suka pantai dan liburan\"}"},"url":{"raw":"{{base_url}}/api/v1/recommend","host":["{{base_url}}"],"path":["api","v1","recommend"]}}},
+				{"name":"Food","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"x-api-key","value":"{{api_key}}"}],"body":{"mode":"raw","raw":"{\"interest\":\"mau cari kuliner pedas\"}"},"url":{"raw":"{{base_url}}/api/v1/recommend","host":["{{base_url}}"],"path":["api","v1","recommend"]}}},
+				{"name":"Education","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"x-api-key","value":"{{api_key}}"}],"body":{"mode":"raw","raw":"{\"interest\":\"ingin belajar coding\"}"},"url":{"raw":"{{base_url}}/api/v1/recommend","host":["{{base_url}}"],"path":["api","v1","recommend"]}}}
+			]
+		},
+		{
+			"name": "6. Webhook",
+			"item": [
+				{"name":"booking.created","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"x-api-key","value":"{{api_key}}"}],"body":{"mode":"raw","raw":"{\"event\":\"booking.created\",\"source\":\"exploreride\",\"data\":{\"bookingId\":1}}"},"url":{"raw":"{{base_url}}/api/v1/webhook/receive","host":["{{base_url}}"],"path":["api","v1","webhook","receive"]}}},
+				{"name":"payment.success","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"x-api-key","value":"{{api_key}}"}],"body":{"mode":"raw","raw":"{\"event\":\"payment.success\",\"source\":\"exploreride\",\"data\":{\"amount\":500000}}"},"url":{"raw":"{{base_url}}/api/v1/webhook/receive","host":["{{base_url}}"],"path":["api","v1","webhook","receive"]}}},
+				{"name":"student.registered","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"x-api-key","value":"{{api_key}}"}],"body":{"mode":"raw","raw":"{\"event\":\"student.registered\",\"source\":\"school\",\"data\":{\"studentName\":\"Budi\"}}"},"url":{"raw":"{{base_url}}/api/v1/webhook/receive","host":["{{base_url}}"],"path":["api","v1","webhook","receive"]}}}
+			]
+		},
+		{
+			"name": "7. AI",
+			"item": [
+				{"name":"Chat","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"x-api-key","value":"{{api_key}}"}],"body":{"mode":"raw","raw":"{\"message\":\"Halo\"}"},"url":{"raw":"{{base_url}}/api/v1/ai/chat","host":["{{base_url}}"],"path":["api","v1","ai","chat"]}}},
+				{"name":"Summarize","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"x-api-key","value":"{{api_key}}"}],"body":{"mode":"raw","raw":"{\"text\":\"teks panjang...\",\"maxLength\":100}"},"url":{"raw":"{{base_url}}/api/v1/ai/summarize","host":["{{base_url}}"],"path":["api","v1","ai","summarize"]}}}
+			]
+		}
+	]
+}
