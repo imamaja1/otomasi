@@ -131,7 +131,10 @@ export class WhatsAppService {
     if (this.client) {
       await this.client.logout();
       this.isReady = false;
+      this.state = 'logged_out';
       logger.info('WhatsApp logged out');
     }
   }
 }
+
+export const whatsappService = new WhatsAppService();

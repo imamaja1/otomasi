@@ -1,18 +1,16 @@
 import { type Repository } from 'typeorm';
 import { AppDataSource } from '../../database/datasource';
 import { Notification } from './entities/notification.entity';
-import { WhatsAppService } from '../whatsapp/whatsapp.service';
+import { whatsappService } from '../whatsapp/whatsapp.service';
 import { EmailService } from '../email/email.service';
 import { logger } from '../../config/logger';
 
 export class NotificationService {
   private notificationRepo: Repository<Notification>;
-  private whatsappService: WhatsAppService;
   private emailService: EmailService;
 
   constructor() {
     this.notificationRepo = AppDataSource.getRepository(Notification);
-    this.whatsappService = new WhatsAppService();
     this.emailService = new EmailService();
   }
 
@@ -37,7 +35,7 @@ export class NotificationService {
 
   async dispatch(channel: string, data: { recipient: string; title: string; body: string }): Promise<void> {
     if (channel === 'whatsapp') {
-      await this.whatsappService.sendMessage(data.recipient, `${data.title}\n\n${data.body}`);
+      await whatsappService.sendMessage(data.recipient, `${data.title}\n\n${data.body}`);
     } else if (channel === 'email') {
       await this.emailService.sendEmail(data.recipient, data.title, data.body);
     }

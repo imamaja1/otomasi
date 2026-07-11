@@ -1,8 +1,6 @@
 import { AppDataSource } from '../../database/datasource';
 import { isRedisAvailable } from '../../config/redis';
-import { WhatsAppService } from '../whatsapp/whatsapp.service';
-
-const whatsappService = new WhatsAppService();
+import { whatsappService } from '../whatsapp/whatsapp.service';
 
 export class HealthService {
   async getHealth() {

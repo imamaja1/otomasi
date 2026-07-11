@@ -6,10 +6,9 @@ import { AppDataSource } from './database/datasource';
 import redis, { isRedisAvailable } from './config/redis';
 import { registerAllWorkers } from './workers/workers';
 import { queueManager } from './modules/queue/queue.manager';
-import { WhatsAppService } from './modules/whatsapp/whatsapp.service';
+import { whatsappService } from './modules/whatsapp/whatsapp.service';
 import { SchedulerService } from './modules/scheduler/scheduler.service';
 
-const whatsappService = new WhatsAppService();
 const schedulerService = new SchedulerService();
 
 async function start() {

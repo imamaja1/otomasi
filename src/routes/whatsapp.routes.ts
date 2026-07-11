@@ -1,9 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { WhatsAppService } from '../modules/whatsapp/whatsapp.service';
+import { whatsappService } from '../modules/whatsapp/whatsapp.service';
 import { queueManager, QueueName } from '../modules/queue/queue.manager';
 import { apiKeyAuth } from '../middleware/api-key.middleware';
-
-const whatsappService = new WhatsAppService();
 
 export async function whatsappRoutes(app: FastifyInstance) {
   app.get('/api/v1/whatsapp/qr', { preHandler: apiKeyAuth }, async (_req: FastifyRequest, reply: FastifyReply) => {
