@@ -1,4 +1,5 @@
 import { type Repository } from 'typeorm';
+import { execSync } from 'child_process';
 import { AppDataSource } from '../../database/datasource';
 import { WhatsAppMessage } from './entities/whatsapp-message.entity';
 import { logger } from '../../config/logger';
@@ -39,6 +40,7 @@ export class WhatsAppService {
         puppeteer: {
           headless: true,
           args: ['--no-sandbox', '--disable-setuid-sandbox'],
+          executablePath: this.findChromePath(),
         },
       });
 
@@ -134,6 +136,14 @@ export class WhatsAppService {
       this.state = 'logged_out';
       logger.info('WhatsApp logged out');
     }
+  }
+
+  private findChromePath(): string | undefined {
+    try { return execSync('which chromium', { encoding: 'utf8' }).trim(); } catch {}
+    try { return execSync('which chromium-browser', { encoding: 'utf8' }).trim(); } catch {}
+    try { return execSync('which google-chrome', { encoding: 'utf8' }).trim(); } catch {}
+    try { return execSync('which google-chrome-stable', { encoding: 'utf8' }).trim(); } catch {}
+    return undefined;
   }
 }
 
