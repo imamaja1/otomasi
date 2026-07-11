@@ -1,5 +1,4 @@
 import { type Repository } from 'typeorm';
-import { execSync } from 'child_process';
 import { AppDataSource } from '../../database/datasource';
 import { WhatsAppMessage } from './entities/whatsapp-message.entity';
 import { logger } from '../../config/logger';
@@ -139,10 +138,16 @@ export class WhatsAppService {
   }
 
   private findChromePath(): string | undefined {
-    try { return execSync('which chromium', { encoding: 'utf8' }).trim(); } catch {}
-    try { return execSync('which chromium-browser', { encoding: 'utf8' }).trim(); } catch {}
-    try { return execSync('which google-chrome', { encoding: 'utf8' }).trim(); } catch {}
-    try { return execSync('which google-chrome-stable', { encoding: 'utf8' }).trim(); } catch {}
+    const paths = [
+      '/usr/bin/chromium',
+      '/usr/bin/chromium-browser',
+      '/usr/bin/google-chrome',
+      '/usr/bin/google-chrome-stable',
+      '/snap/bin/chromium',
+    ];
+    for (const p of paths) {
+      try { require('fs').accessSync(p, require('fs').constants.X_OK); return p; } catch {}
+    }
     return undefined;
   }
 }
