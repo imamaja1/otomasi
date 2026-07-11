@@ -10,12 +10,16 @@ export class WhatsAppService {
   private isReady: boolean = false;
   private qrCode: string | null = null;
   private qrGeneratedAt: Date | null = null;
+  private lastError: string | null = null;
+  private lastErrorAt: Date | null = null;
+  private state: string = 'idle';
 
   constructor() {
     this.messageRepo = AppDataSource.getRepository(WhatsAppMessage);
   }
 
   async initialize(): Promise<void> {
+    this.state = 'initializing';
     try {
       const wa = await import('whatsapp-web.js');
       const Client = wa.default.Client || wa.Client;
@@ -41,6 +45,7 @@ export class WhatsAppService {
       this.client.on('qr', (qr: string) => {
         this.qrCode = qr;
         this.qrGeneratedAt = new Date();
+        this.state = 'awaiting_scan';
         logger.info('QR ready — GET /api/v1/whatsapp/qr to retrieve');
         import('qrcode-terminal').then((mod: any) => {
           const qrcode = mod.default || mod;
@@ -52,6 +57,7 @@ export class WhatsAppService {
 
       this.client.on('ready', () => {
         this.isReady = true;
+        this.state = 'ready';
         logger.info('WhatsApp client is ready');
       });
 
@@ -61,11 +67,15 @@ export class WhatsAppService {
 
       this.client.on('disconnected', (reason: string) => {
         this.isReady = false;
+        this.state = 'disconnected';
         logger.warn(`WhatsApp disconnected: ${reason}`);
       });
 
       await this.client.initialize();
-    } catch (err) {
+    } catch (err: any) {
+      this.state = 'error';
+      this.lastError = err.message;
+      this.lastErrorAt = new Date();
       logger.error(err, 'Failed to initialize WhatsApp client');
     }
   }
@@ -96,16 +106,18 @@ export class WhatsAppService {
     return { id: saved.id, status: saved.status };
   }
 
-  getQr(): { qr: string | null; isReady: boolean; generatedAt: Date | null } {
+  getQr(): { qr: string | null; isReady: boolean; generatedAt: Date | null; state: string; lastError: string | null } {
     return {
       qr: this.qrCode,
       isReady: this.isReady,
       generatedAt: this.qrGeneratedAt,
+      state: this.state,
+      lastError: this.lastError,
     };
   }
 
-  async getStatus(): Promise<{ isReady: boolean }> {
-    return { isReady: this.isReady };
+  async getStatus(): Promise<{ isReady: boolean; state: string; lastError: string | null }> {
+    return { isReady: this.isReady, state: this.state, lastError: this.lastError };
   }
 
   async updateMessageStatus(messageId: number, status: string, error?: string): Promise<void> {
