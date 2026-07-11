@@ -8,6 +8,8 @@ export class WhatsAppService {
   private messageRepo: Repository<WhatsAppMessage>;
   private client: any = null;
   private isReady: boolean = false;
+  private qrCode: string | null = null;
+  private qrGeneratedAt: Date | null = null;
 
   constructor() {
     this.messageRepo = AppDataSource.getRepository(WhatsAppMessage);
@@ -37,7 +39,9 @@ export class WhatsAppService {
       });
 
       this.client.on('qr', (qr: string) => {
-        logger.info('WhatsApp QR code received');
+        this.qrCode = qr;
+        this.qrGeneratedAt = new Date();
+        logger.info('QR ready — GET /api/v1/whatsapp/qr to retrieve');
         import('qrcode-terminal').then((mod: any) => {
           const qrcode = mod.default || mod;
           qrcode.generate(qr, { small: true });
@@ -90,6 +94,14 @@ export class WhatsAppService {
     }
 
     return { id: saved.id, status: saved.status };
+  }
+
+  getQr(): { qr: string | null; isReady: boolean; generatedAt: Date | null } {
+    return {
+      qr: this.qrCode,
+      isReady: this.isReady,
+      generatedAt: this.qrGeneratedAt,
+    };
   }
 
   async getStatus(): Promise<{ isReady: boolean }> {

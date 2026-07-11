@@ -6,6 +6,11 @@ import { apiKeyAuth } from '../middleware/api-key.middleware';
 const whatsappService = new WhatsAppService();
 
 export async function whatsappRoutes(app: FastifyInstance) {
+  app.get('/api/v1/whatsapp/qr', { preHandler: apiKeyAuth }, async (_req: FastifyRequest, reply: FastifyReply) => {
+    const qr = whatsappService.getQr();
+    return reply.send(qr);
+  });
+
   app.get('/api/v1/whatsapp/status', { preHandler: apiKeyAuth }, async (_req: FastifyRequest, reply: FastifyReply) => {
     const status = await whatsappService.getStatus();
     return reply.send(status);
