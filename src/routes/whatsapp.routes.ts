@@ -4,6 +4,12 @@ import { queueManager, QueueName } from '../modules/queue/queue.manager';
 import { apiKeyAuth } from '../middleware/api-key.middleware';
 
 export async function whatsappRoutes(app: FastifyInstance) {
+  app.get('/api/v1/whatsapp/qr-image', { preHandler: apiKeyAuth }, async (_req, reply) => {
+    const image = await whatsappService.getQrImage();
+    if (!image) return reply.code(404).send({ error: 'QR not available. Restart server or wait for QR generation.' });
+    return reply.type('image/png').send(image);
+  });
+
   app.get('/api/v1/whatsapp/qr', { preHandler: apiKeyAuth }, async (_req: FastifyRequest, reply: FastifyReply) => {
     const qr = whatsappService.getQr();
     return reply.send(qr);

@@ -1,4 +1,5 @@
 import { type Repository } from 'typeorm';
+import QRCode from 'qrcode';
 import { AppDataSource } from '../../database/datasource';
 import { WhatsAppMessage } from './entities/whatsapp-message.entity';
 import { logger } from '../../config/logger';
@@ -126,6 +127,11 @@ export class WhatsAppService {
     if (status === 'sent') update.sentAt = new Date();
     if (error) update.error = error;
     await this.messageRepo.update(messageId, update);
+  }
+
+  async getQrImage(): Promise<Buffer | null> {
+    if (!this.qrCode) return null;
+    return QRCode.toBuffer(this.qrCode, { type: 'png', width: 400, margin: 2 });
   }
 
   async logout(): Promise<void> {
