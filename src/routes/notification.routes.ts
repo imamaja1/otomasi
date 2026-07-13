@@ -1,11 +1,24 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { NotificationService } from '../modules/notification/notification.service';
+import { Notification } from '../modules/notification/entities/notification.entity';
+import { AppDataSource } from '../database/datasource';
 import { queueManager, QueueName } from '../modules/queue/queue.manager';
 import { apiKeyAuth } from '../middleware/api-key.middleware';
 
 const notificationService = new NotificationService();
 
 export async function notificationRoutes(app: FastifyInstance) {
+  app.get('/api/v1/notification/list', { preHandler: apiKeyAuth }, async (req: FastifyRequest, reply: FastifyReply) => {
+    const repo = AppDataSource.getRepository(Notification);
+    const { page, limit, channel } = req.query as any;
+    const where: any = {};
+    if (channel) where.channel = channel;
+    const [data, total] = await repo.findAndCount({
+      where, order: { createdAt: 'DESC' }, take: parseInt(limit || '50'), skip: (parseInt(page || '1') - 1) * parseInt(limit || '50'),
+    });
+    return reply.send({ data, total });
+  });
+
   app.post('/api/v1/notification/send', { preHandler: apiKeyAuth }, async (req: FastifyRequest, reply: FastifyReply) => {
     const { channel, recipient, title, body } = req.body as {
       channel: string;

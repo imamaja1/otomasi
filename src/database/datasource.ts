@@ -2,6 +2,7 @@ import { DataSource } from 'typeorm';
 import { env } from '../config/env';
 import { Application } from '../modules/auth/entities/application.entity';
 import { ApiKey } from '../modules/auth/entities/api-key.entity';
+import { Admin } from '../modules/auth/entities/admin.entity';
 import { Template } from '../modules/email/entities/template.entity';
 import { WhatsAppMessage } from '../modules/whatsapp/entities/whatsapp-message.entity';
 import { WhatsAppAccount } from '../modules/whatsapp/entities/whatsapp-account.entity';
@@ -26,6 +27,7 @@ export const AppDataSource = new DataSource({
   entities: [
     Application,
     ApiKey,
+    Admin,
     Template,
     WhatsAppMessage,
     WhatsAppAccount,

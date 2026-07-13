@@ -1,10 +1,18 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { AiService } from '../modules/ai/ai.service';
+import { AiRequest } from '../modules/ai/entities/ai-request.entity';
+import { AppDataSource } from '../database/datasource';
 import { apiKeyAuth } from '../middleware/api-key.middleware';
 
 const aiService = new AiService();
 
 export async function aiRoutes(app: FastifyInstance) {
+  app.get('/api/v1/ai/list', { preHandler: apiKeyAuth }, async (_req: FastifyRequest, reply: FastifyReply) => {
+    const repo = AppDataSource.getRepository(AiRequest);
+    const data = await repo.find({ order: { createdAt: 'DESC' }, take: 100 });
+    return reply.send({ data });
+  });
+
   app.post('/api/v1/ai/chat', { preHandler: apiKeyAuth }, async (req: FastifyRequest, reply: FastifyReply) => {
     const { message, context } = req.body as { message: string; context?: string };
     if (!message) return reply.code(400).send({ error: 'message is required' });

@@ -8,6 +8,7 @@ import { registerAllWorkers } from './workers/workers';
 import { queueManager } from './modules/queue/queue.manager';
 import { whatsappManager } from './modules/whatsapp/whatsapp.manager';
 import { SchedulerService } from './modules/scheduler/scheduler.service';
+import { adminAuthService } from './modules/auth/admin-auth.service';
 
 const schedulerService = new SchedulerService();
 
@@ -36,6 +37,8 @@ async function start() {
     } catch (err: any) {
       logger.warn(`WhatsApp init skipped: ${err.message}`);
     }
+
+    await adminAuthService.seedDefault();
 
     const app = await buildApp();
 

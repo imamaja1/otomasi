@@ -1,11 +1,24 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { EmailService } from '../modules/email/email.service';
+import { EmailMessage } from '../modules/email/entities/email-message.entity';
+import { AppDataSource } from '../database/datasource';
 import { queueManager, QueueName } from '../modules/queue/queue.manager';
 import { apiKeyAuth } from '../middleware/api-key.middleware';
 
 const emailService = new EmailService();
 
 export async function emailRoutes(app: FastifyInstance) {
+  app.get('/api/v1/email/messages', { preHandler: apiKeyAuth }, async (req: FastifyRequest, reply: FastifyReply) => {
+    const repo = AppDataSource.getRepository(EmailMessage);
+    const { page, limit, status } = req.query as any;
+    const where: any = {};
+    if (status && status !== 'all') where.status = status;
+    const [data, total] = await repo.findAndCount({
+      where, order: { createdAt: 'DESC' }, take: parseInt(limit || '50'), skip: (parseInt(page || '1') - 1) * parseInt(limit || '50'),
+    });
+    return reply.send({ data, total });
+  });
+
   app.post('/api/v1/email/send', { preHandler: apiKeyAuth }, async (req: FastifyRequest, reply: FastifyReply) => {
     const { to, subject, body, template, variables } = req.body as {
       to: string;

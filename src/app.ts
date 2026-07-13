@@ -2,6 +2,8 @@ import { fastify } from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import fjwt from '@fastify/jwt';
+import fastifyStatic from '@fastify/static';
+import path from 'path';
 import { env } from './config/env';
 import { authRoutes } from './routes/auth.routes';
 import { whatsappRoutes } from './routes/whatsapp.routes';
@@ -13,6 +15,7 @@ import { systemRoutes } from './routes/system.routes';
 import { aiRoutes } from './routes/ai.routes';
 import { recommendationRoutes } from './routes/recommendation.routes';
 import { healthRoutes } from './routes/health.routes';
+import { adminRoutes } from './routes/admin.routes';
 import { LoggingService } from './modules/logging/logging.service';
 
 const loggingService = new LoggingService();
@@ -60,6 +63,15 @@ export async function buildApp() {
   await app.register(systemRoutes);
   await app.register(aiRoutes);
   await app.register(recommendationRoutes);
+  await app.register(adminRoutes);
+
+  const adminDist = path.join(__dirname, '..', 'dist-admin');
+  await app.register(fastifyStatic, { root: adminDist, prefix: '/admin/', wildcard: false });
+
+  app.setNotFoundHandler((req, reply) => {
+    if ((req as any).url.startsWith('/admin')) return reply.sendFile('index.html');
+    reply.code(404).send({ error: 'Not found' });
+  });
 
   return app;
 }
