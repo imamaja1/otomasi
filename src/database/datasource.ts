@@ -4,6 +4,7 @@ import { Application } from '../modules/auth/entities/application.entity';
 import { ApiKey } from '../modules/auth/entities/api-key.entity';
 import { Template } from '../modules/email/entities/template.entity';
 import { WhatsAppMessage } from '../modules/whatsapp/entities/whatsapp-message.entity';
+import { WhatsAppAccount } from '../modules/whatsapp/entities/whatsapp-account.entity';
 import { EmailMessage } from '../modules/email/entities/email-message.entity';
 import { Notification } from '../modules/notification/entities/notification.entity';
 import { Schedule } from '../modules/scheduler/entities/schedule.entity';
@@ -27,6 +28,7 @@ export const AppDataSource = new DataSource({
     ApiKey,
     Template,
     WhatsAppMessage,
+    WhatsAppAccount,
     EmailMessage,
     Notification,
     Schedule,
