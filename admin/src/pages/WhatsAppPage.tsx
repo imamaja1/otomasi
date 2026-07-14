@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Box, Typography, Table, TableBody, TableCell, TableHead, TableRow, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Chip, IconButton, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Box, Typography, Table, TableBody, TableCell, TableHead, TableRow, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Chip, IconButton, Select, MenuItem, FormControl, InputLabel, Snackbar, Alert } from '@mui/material';
 import { QrCode as QrIcon, Delete, Send, Refresh } from '@mui/icons-material';
 import api from '../api/client';
 
@@ -17,6 +17,7 @@ export default function WhatsAppPage() {
   const [sendAccount, setSendAccount] = useState<any>(null);
   const [sendTo, setSendTo] = useState('');
   const [sendMsg, setSendMsg] = useState('');
+  const [snack, setSnack] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
 
   const load = useCallback(() => {
     api.get('/whatsapp/accounts').then((r) => {
@@ -74,11 +75,15 @@ export default function WhatsAppPage() {
   };
 
   const sendMessage = async () => {
-    await api.post(`/whatsapp/accounts/${sendAccount?.id}/send`, { to: sendTo, message: sendMsg });
-    setSendOpen(false);
-    setSendTo('');
-    setSendMsg('');
-    alert('Message sent!');
+    try {
+      await api.post(`/whatsapp/accounts/${sendAccount?.id}/send`, { to: sendTo, message: sendMsg });
+      setSendOpen(false);
+      setSendTo('');
+      setSendMsg('');
+      setSnack({ open: true, message: 'Pesan terkirim!', severity: 'success' });
+    } catch (e: any) {
+      setSnack({ open: true, message: e.response?.data?.error || 'Gagal kirim pesan', severity: 'error' });
+    }
   };
 
   return (
@@ -140,6 +145,10 @@ export default function WhatsAppPage() {
         </DialogContent>
         <DialogActions><Button onClick={() => setSendOpen(false)}>Cancel</Button><Button variant="contained" onClick={sendMessage}>Send</Button></DialogActions>
       </Dialog>
+
+      <Snackbar open={snack.open} autoHideDuration={3000} onClose={() => setSnack({ ...snack, open: false })} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert severity={snack.severity} onClose={() => setSnack({ ...snack, open: false })} variant="filled">{snack.message}</Alert>
+      </Snackbar>
     </Box>
   );
 }
