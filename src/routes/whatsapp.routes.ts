@@ -19,7 +19,7 @@ export async function whatsappRoutes(app: FastifyInstance) {
   });
 
   app.get('/api/v1/whatsapp/accounts', { preHandler: apiKeyAuth }, async (req: FastifyRequest, reply: FastifyReply) => {
-    const appId = (req as any).application?.id;
+    const appId = (req as any).application?.id || undefined;
     const accounts = await whatsappManager.listAccounts(appId);
     return reply.send(accounts.map((a) => ({
       id: a.id, applicationId: a.applicationId, phoneNumber: a.phoneNumber, isActive: a.isActive, createdAt: a.createdAt,
@@ -27,9 +27,10 @@ export async function whatsappRoutes(app: FastifyInstance) {
   });
 
   app.post('/api/v1/whatsapp/accounts', { preHandler: apiKeyAuth }, async (req: FastifyRequest, reply: FastifyReply) => {
-    const { phoneNumber } = req.body as any;
+    const { phoneNumber, applicationId } = req.body as any;
     if (!phoneNumber) return reply.code(400).send({ error: 'phoneNumber is required' });
-    const appId = (req as any).application?.id;
+    const appId = (req as any).application?.id || applicationId;
+    if (!appId) return reply.code(400).send({ error: 'applicationId is required' });
     try {
       const account = await whatsappManager.createAccount(appId, phoneNumber);
       return reply.code(201).send(account);

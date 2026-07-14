@@ -8,6 +8,8 @@ export default function WhatsAppPage() {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [appSelect, setAppSelect] = useState('');
+  const [apps, setAppsList] = useState<any[]>([]);
   const [qrOpen, setQrOpen] = useState(false);
   const [qrAccount, setQrAccount] = useState<any>(null);
   const [sendOpen, setSendOpen] = useState(false);
@@ -22,7 +24,12 @@ export default function WhatsAppPage() {
   useEffect(() => { load(); }, [load]);
 
   const addAccount = async () => {
-    try { await api.post('/whatsapp/accounts', { phoneNumber }); setShowAdd(false); setPhoneNumber(''); load(); } catch (e: any) { alert(e.response?.data?.error || 'Error'); }
+    try { await api.post('/whatsapp/accounts', { phoneNumber, applicationId: parseInt(appSelect) }); setShowAdd(false); setPhoneNumber(''); load(); } catch (e: any) { alert(e.response?.data?.error || 'Error'); }
+  };
+
+  const openAdd = async () => {
+    setShowAdd(true);
+    try { const r = await api.get('/auth/applications'); setAppsList(r.data); } catch {}
   };
 
   const deleteAccount = async (id: number) => {
@@ -45,7 +52,7 @@ export default function WhatsAppPage() {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
         <Typography variant="h5">WhatsApp</Typography>
-        <Box><IconButton onClick={load}><Refresh /></IconButton><Button variant="contained" onClick={() => setShowAdd(true)} sx={{ ml: 1 }}>Tambah Akun</Button></Box>
+        <Box><IconButton onClick={load}><Refresh /></IconButton><Button variant="contained" onClick={openAdd} sx={{ ml: 1 }}>Tambah Akun</Button></Box>
       </Box>
 
       <Table>
@@ -73,7 +80,10 @@ export default function WhatsAppPage() {
 
       <Dialog open={showAdd} onClose={() => setShowAdd(false)} maxWidth="xs" fullWidth>
         <DialogTitle>Tambah WhatsApp Account</DialogTitle>
-        <DialogContent><TextField label="Phone Number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} fullWidth margin="normal" placeholder="628xxx" /></DialogContent>
+        <DialogContent>
+          <TextField label="Phone Number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} fullWidth margin="normal" placeholder="628xxx" />
+          <TextField label="Application ID" value={appSelect} onChange={(e) => setAppSelect(e.target.value)} fullWidth margin="normal" type="number" />
+        </DialogContent>
         <DialogActions><Button onClick={() => setShowAdd(false)}>Cancel</Button><Button variant="contained" onClick={addAccount}>Create</Button></DialogActions>
       </Dialog>
 
