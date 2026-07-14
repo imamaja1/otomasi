@@ -82,7 +82,7 @@ class WhatsAppManager {
   }
 
   async listAccounts(applicationId?: number): Promise<WhatsAppAccount[]> {
-    const where: any = {};
+    const where: any = { isActive: true };
     if (applicationId) where.applicationId = applicationId;
     return this.accountRepo.find({ where });
   }

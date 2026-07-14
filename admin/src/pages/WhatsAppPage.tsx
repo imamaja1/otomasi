@@ -19,7 +19,10 @@ export default function WhatsAppPage() {
   const [sendMsg, setSendMsg] = useState('');
 
   const load = useCallback(() => {
-    api.get('/whatsapp/accounts').then((r) => setAccounts(r.data)).catch(() => {});
+    api.get('/whatsapp/accounts').then((r) => {
+      const list = Array.isArray(r.data) ? r.data : (r.data?.value || r.data?.data || []);
+      setAccounts(list);
+    }).catch(() => {});
   }, []);
 
   useEffect(() => { load(); }, [load]);
