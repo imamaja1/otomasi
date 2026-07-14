@@ -66,10 +66,17 @@ export async function buildApp() {
   await app.register(adminRoutes);
 
   const adminDist = path.join(__dirname, '..', 'dist-admin');
-  await app.register(fastifyStatic, { root: adminDist, prefix: '/admin/', wildcard: false });
+  await app.register(fastifyStatic, {
+    root: adminDist,
+    prefix: '/admin/',
+    wildcard: false,
+    index: false,
+  });
 
   app.setNotFoundHandler((req, reply) => {
-    if ((req as any).url.startsWith('/admin')) return reply.sendFile('index.html');
+    if ((req as any).url.startsWith('/admin')) {
+      return reply.sendFile('index.html', adminDist);
+    }
     reply.code(404).send({ error: 'Not found' });
   });
 
