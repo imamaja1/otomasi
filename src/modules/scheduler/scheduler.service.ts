@@ -72,6 +72,12 @@ export class SchedulerService {
     return saved;
   }
 
+  async deleteSchedule(id: number): Promise<void> {
+    this.stopSchedule(id);
+    await this.scheduleRepo.delete(id);
+    logger.info(`Schedule ${id} deleted`);
+  }
+
   stopAll(): void {
     for (const task of this.tasks.values()) {
       task.stop();

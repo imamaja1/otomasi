@@ -31,7 +31,7 @@ export async function buildApp() {
   });
 
   await app.register(rateLimit, {
-    max: 100,
+    max: 200,
     timeWindow: '1 minute',
   });
 
@@ -46,6 +46,7 @@ export async function buildApp() {
       statusCode: reply.statusCode,
       duration: Math.round(reply.elapsedTime),
       ip: req.ip,
+      applicationId: (req as any).application?.id,
     }).catch(() => {});
   });
 

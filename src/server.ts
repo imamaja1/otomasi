@@ -54,20 +54,16 @@ async function start() {
   }
 }
 
-process.on('SIGTERM', async () => {
-  logger.info('SIGTERM received, shutting down...');
+async function shutdown() {
+  logger.info('Shutting down...');
   schedulerService.stopAll();
+  await queueManager.closeAll();
   await AppDataSource.destroy();
   redis.disconnect();
   process.exit(0);
-});
+}
 
-process.on('SIGINT', async () => {
-  logger.info('SIGINT received, shutting down...');
-  schedulerService.stopAll();
-  await AppDataSource.destroy();
-  redis.disconnect();
-  process.exit(0);
-});
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
 
 start();

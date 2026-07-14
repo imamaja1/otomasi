@@ -14,9 +14,13 @@ export function registerAllWorkers() {
   queueManager.registerWorker(QueueName.WHATSAPP, async (job: Job) => {
     const { to, message, messageId, accountId } = job.data;
     try {
-      await whatsappService.sendMessage(to, message, accountId);
-      await whatsappService.updateMessageStatus(messageId, 'sent');
-      loggingService.systemLog({ level: 'info', module: 'whatsapp_worker', message: `Message sent to ${to}` });
+      const result = await whatsappService.sendMessage(to, message, accountId);
+      await whatsappService.updateMessageStatus(messageId, result.status);
+      if (result.status === 'sent') {
+        loggingService.systemLog({ level: 'info', module: 'whatsapp_worker', message: `Message sent to ${to}` });
+      } else {
+        loggingService.systemLog({ level: 'warn', module: 'whatsapp_worker', message: `Message pending for ${to}` });
+      }
     } catch (err: any) {
       await whatsappService.updateMessageStatus(messageId, 'failed', err.message);
       loggingService.systemLog({ level: 'error', module: 'whatsapp_worker', message: err.message });
@@ -27,9 +31,13 @@ export function registerAllWorkers() {
   queueManager.registerWorker(QueueName.EMAIL, async (job: Job) => {
     const { to, subject, body, messageId } = job.data;
     try {
-      await emailService.sendEmail(to, subject, body);
-      await emailService.updateEmailStatus(messageId, 'sent');
-      loggingService.systemLog({ level: 'info', module: 'email_worker', message: `Email sent to ${to}` });
+      const result = await emailService.sendEmail(to, subject, body);
+      if (result.status === 'sent') {
+        await emailService.updateEmailStatus(messageId, 'sent');
+        loggingService.systemLog({ level: 'info', module: 'email_worker', message: `Email sent to ${to}` });
+      } else {
+        loggingService.systemLog({ level: 'warn', module: 'email_worker', message: `Email queued for ${to} (no SMTP)` });
+      }
     } catch (err: any) {
       await emailService.updateEmailStatus(messageId, 'failed', err.message);
       loggingService.systemLog({ level: 'error', module: 'email_worker', message: err.message });

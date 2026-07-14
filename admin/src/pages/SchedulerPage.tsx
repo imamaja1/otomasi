@@ -19,9 +19,16 @@ export default function SchedulerPage() {
 
   const addSchedule = async () => {
     try {
+      JSON.parse(jobData);
       await api.post('/scheduler', { name, cronExpression: cron, jobType, jobData: JSON.parse(jobData) });
       setShowAdd(false); setName(''); setCron(''); setJobData('{}'); load();
-    } catch (e: any) { alert(e.response?.data?.error || 'Error'); }
+    } catch (e: any) { alert(e.response?.data?.error || 'Invalid JSON in jobData'); }
+  };
+
+  const deleteSchedule = async (id: number) => {
+    if (!confirm('Delete this schedule?')) return;
+    await api.delete(`/scheduler/${id}`);
+    load();
   };
 
   return (
@@ -31,7 +38,7 @@ export default function SchedulerPage() {
         <Box><IconButton onClick={load}><Refresh /></IconButton><Button variant="contained" startIcon={<Add />} onClick={() => setShowAdd(true)}>Tambah Cron</Button></Box>
       </Box>
       <Table size="small">
-        <TableHead><TableRow><TableCell>Name</TableCell><TableCell>Cron</TableCell><TableCell>Type</TableCell><TableCell>Active</TableCell><TableCell>Last Run</TableCell></TableRow></TableHead>
+        <TableHead><TableRow><TableCell>Name</TableCell><TableCell>Cron</TableCell><TableCell>Type</TableCell><TableCell>Active</TableCell><TableCell>Last Run</TableCell><TableCell></TableCell></TableRow></TableHead>
         <TableBody>
           {data.map((s) => (
             <TableRow key={s.id}>
@@ -40,9 +47,10 @@ export default function SchedulerPage() {
               <TableCell><Chip label={s.jobType} size="small" color="primary" /></TableCell>
               <TableCell><Chip label={s.isActive ? 'Yes' : 'No'} size="small" color={s.isActive ? 'success' : 'default'} /></TableCell>
               <TableCell>{s.lastRunAt ? new Date(s.lastRunAt).toLocaleString() : '-'}</TableCell>
+              <TableCell><IconButton size="small" onClick={() => deleteSchedule(s.id)}><Delete fontSize="small" /></IconButton></TableCell>
             </TableRow>
           ))}
-          {data.length === 0 && <TableRow><TableCell colSpan={5} align="center">No schedules</TableCell></TableRow>}
+          {data.length === 0 && <TableRow><TableCell colSpan={6} align="center">No schedules</TableCell></TableRow>}
         </TableBody>
       </Table>
 

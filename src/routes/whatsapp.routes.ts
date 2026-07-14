@@ -17,6 +17,7 @@ export async function whatsappRoutes(app: FastifyInstance) {
     const { page, limit, status } = req.query as any;
     const where: any = {};
     if (status && status !== 'all') where.status = status;
+    if (!(req as any).admin) where.applicationId = (req as any).application?.id;
     const [data, total] = await repo.findAndCount({
       where, order: { createdAt: 'DESC' }, take: parseInt(limit || '50'), skip: (parseInt(page || '1') - 1) * parseInt(limit || '50'),
     });
@@ -141,7 +142,7 @@ export async function whatsappRoutes(app: FastifyInstance) {
     if (!to || !message) return reply.code(400).send({ error: 'to and message are required' });
     const appId = (req as any).application?.id;
     const accountId = whatsappManager.getAccountIdForApp(appId);
-    const result = await whatsappService.sendMessage(to, message, accountId || undefined);
+    const result = await whatsappService.sendMessage(to, message, accountId || undefined, undefined, appId);
     if (result.status === 'pending' && accountId) {
       try { await queueManager.addJob(QueueName.WHATSAPP, 'send_message', { to, message, messageId: result.id, accountId }); } catch {}
     }

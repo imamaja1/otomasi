@@ -4,8 +4,6 @@ import { WhatsAppMessage } from './entities/whatsapp-message.entity';
 import { logger } from '../../config/logger';
 import { whatsappManager } from './whatsapp.manager';
 
-const DEFAULT_ACCOUNT_ID = 1;
-
 export class WhatsAppService {
   private messageRepo: Repository<WhatsAppMessage>;
 
@@ -13,12 +11,17 @@ export class WhatsAppService {
     this.messageRepo = AppDataSource.getRepository(WhatsAppMessage);
   }
 
-  async sendMessage(to: string, message: string, accountId?: number, fromNumber?: string): Promise<{ id: number; status: string }> {
-    const msg = this.messageRepo.create({ toNumber: to, message, accountId, fromNumber, status: 'pending' });
+  private getDefaultAccountId(): number | undefined {
+    const first = whatsappManager.getAccountIdForApp(1);
+    return first || undefined;
+  }
+
+  async sendMessage(to: string, message: string, accountId?: number, fromNumber?: string, applicationId?: number): Promise<{ id: number; status: string }> {
+    const msg = this.messageRepo.create({ toNumber: to, message, accountId, fromNumber, applicationId, status: 'pending' });
     const saved = await this.messageRepo.save(msg);
 
     try {
-      const instance = whatsappManager.getInstance(accountId || DEFAULT_ACCOUNT_ID);
+      const instance = whatsappManager.getInstance(accountId || this.getDefaultAccountId() || 1);
       const { status } = await instance.sendMessage(to, message);
       if (status === 'sent') {
         saved.status = 'sent';
@@ -36,7 +39,7 @@ export class WhatsAppService {
 
   getQr(accountId?: number) {
     try {
-      const instance = whatsappManager.getInstance(accountId || DEFAULT_ACCOUNT_ID);
+      const instance = whatsappManager.getInstance(accountId || this.getDefaultAccountId() || 1);
       return instance.getQr();
     } catch {
       return null;
@@ -45,7 +48,7 @@ export class WhatsAppService {
 
   async getQrImage(accountId?: number) {
     try {
-      const instance = whatsappManager.getInstance(accountId || DEFAULT_ACCOUNT_ID);
+      const instance = whatsappManager.getInstance(accountId || this.getDefaultAccountId() || 1);
       return instance.getQrImage();
     } catch {
       return null;
@@ -54,7 +57,7 @@ export class WhatsAppService {
 
   async getStatus(accountId?: number) {
     try {
-      const instance = whatsappManager.getInstance(accountId || DEFAULT_ACCOUNT_ID);
+      const instance = whatsappManager.getInstance(accountId || this.getDefaultAccountId() || 1);
       return instance.getStatus();
     } catch {
       return { state: 'no_account', isReady: false, lastError: null };
@@ -69,7 +72,7 @@ export class WhatsAppService {
   }
 
   async logout(accountId?: number): Promise<void> {
-    const instance = whatsappManager.getInstance(accountId || DEFAULT_ACCOUNT_ID);
+    const instance = whatsappManager.getInstance(accountId || this.getDefaultAccountId() || 1);
     await instance.logout();
   }
 }

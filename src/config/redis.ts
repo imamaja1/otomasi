@@ -26,7 +26,9 @@ function createRedisClient(): Redis {
     logger.info('Redis connected');
   });
 
-  client.on('error', () => {});
+  client.on('error', (err) => {
+    logger.error(err, 'Redis error');
+  });
 
   return client;
 }

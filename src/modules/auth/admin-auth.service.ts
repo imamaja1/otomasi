@@ -1,7 +1,9 @@
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import { type Repository } from 'typeorm';
 import { AppDataSource } from '../../database/datasource';
 import { Admin } from './entities/admin.entity';
+import { env } from '../../config/env';
 import { logger } from '../../config/logger';
 
 export class AdminAuthService {
@@ -21,8 +23,6 @@ export class AdminAuthService {
     await this.adminRepo.update(admin.id, { lastLoginAt: new Date() });
 
     const payload = { id: admin.id, username: admin.username, role: admin.role };
-    const { env } = require('../../config/env');
-    const { default: jwt } = await import('jsonwebtoken');
     const token = jwt.sign(payload, env.JWT_SECRET, { expiresIn: '24h' });
 
     logger.info(`Admin ${admin.username} logged in`);
@@ -31,15 +31,17 @@ export class AdminAuthService {
 
   async validateToken(token: string): Promise<{ id: number; username: string; role: string } | null> {
     try {
-      const { env } = require('../../config/env');
-      const { default: jwt } = await import('jsonwebtoken');
-      return jwt.verify(token, env.JWT_SECRET) as any;
+      const decoded = jwt.verify(token, env.JWT_SECRET) as { id: number; username: string; role: string };
+      const admin = await this.adminRepo.findOne({ where: { id: decoded.id, isActive: true } });
+      if (!admin) return null;
+      return decoded;
     } catch {
       return null;
     }
   }
 
   async createAdmin(username: string, password: string, role: string = 'admin'): Promise<Admin> {
+    if (!['admin', 'superadmin'].includes(role)) throw new Error('Invalid role');
     const hash = await bcrypt.hash(password, 10);
     const admin = this.adminRepo.create({ username, password: hash, role });
     return this.adminRepo.save(admin);

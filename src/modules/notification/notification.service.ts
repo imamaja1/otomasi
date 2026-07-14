@@ -2,6 +2,7 @@ import { type Repository } from 'typeorm';
 import { AppDataSource } from '../../database/datasource';
 import { Notification } from './entities/notification.entity';
 import { whatsappService } from '../whatsapp/whatsapp.service';
+import { whatsappManager } from '../whatsapp/whatsapp.manager';
 import { EmailService } from '../email/email.service';
 import { logger } from '../../config/logger';
 
@@ -33,9 +34,10 @@ export class NotificationService {
     return saved;
   }
 
-  async dispatch(channel: string, data: { recipient: string; title: string; body: string }): Promise<void> {
+  async dispatch(channel: string, data: { recipient: string; title: string; body: string; accountId?: number }): Promise<void> {
     if (channel === 'whatsapp') {
-      await whatsappService.sendMessage(data.recipient, `${data.title}\n\n${data.body}`);
+      const accountId = data.accountId || whatsappManager.getAccountIdForApp(1);
+      await whatsappService.sendMessage(data.recipient, `${data.title}\n\n${data.body}`, accountId || undefined);
     } else if (channel === 'email') {
       await this.emailService.sendEmail(data.recipient, data.title, data.body);
     }
