@@ -1,15 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Box, Typography, Tabs, Tab, Table, TableBody, TableCell, TableHead, TableRow, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Chip, IconButton } from '@mui/material';
+import { Box, Typography, Table, TableBody, TableCell, TableHead, TableRow, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Chip, IconButton, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { QrCode as QrIcon, Delete, Send, Refresh } from '@mui/icons-material';
 import api from '../api/client';
 
 export default function WhatsAppPage() {
-  const [tab, setTab] = useState(0);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [appSelect, setAppSelect] = useState('');
-  const [apps, setAppsList] = useState<any[]>([]);
+  const [availableApps, setAvailableApps] = useState<any[]>([]);
   const [qrOpen, setQrOpen] = useState(false);
   const [qrAccount, setQrAccount] = useState<any>(null);
   const [sendOpen, setSendOpen] = useState(false);
@@ -23,13 +22,30 @@ export default function WhatsAppPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const addAccount = async () => {
-    try { await api.post('/whatsapp/accounts', { phoneNumber, applicationId: parseInt(appSelect) }); setShowAdd(false); setPhoneNumber(''); load(); } catch (e: any) { alert(e.response?.data?.error || 'Error'); }
-  };
-
   const openAdd = async () => {
     setShowAdd(true);
-    try { const r = await api.get('/auth/applications'); setAppsList(r.data); } catch {}
+    setPhoneNumber('');
+    setAppSelect('');
+    try {
+      const [appsRes, accountsRes] = await Promise.all([
+        api.get('/auth/applications'),
+        api.get('/whatsapp/accounts'),
+      ]);
+      const allApps = appsRes.data;
+      const usedAppIds = new Set((accountsRes.data || []).map((a: any) => a.applicationId));
+      setAvailableApps(allApps.filter((app: any) => !usedAppIds.has(app.id)));
+    } catch {}
+  };
+
+  const addAccount = async () => {
+    try {
+      await api.post('/whatsapp/accounts', { phoneNumber, applicationId: parseInt(appSelect) });
+      setShowAdd(false);
+      setPhoneNumber('');
+      load();
+    } catch (e: any) {
+      alert(e.response?.data?.error || 'Error');
+    }
   };
 
   const deleteAccount = async (id: number) => {
@@ -82,9 +98,16 @@ export default function WhatsAppPage() {
         <DialogTitle>Tambah WhatsApp Account</DialogTitle>
         <DialogContent>
           <TextField label="Phone Number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} fullWidth margin="normal" placeholder="628xxx" />
-          <TextField label="Application ID" value={appSelect} onChange={(e) => setAppSelect(e.target.value)} fullWidth margin="normal" type="number" />
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Application</InputLabel>
+            <Select value={appSelect} label="Application" onChange={(e) => setAppSelect(e.target.value)}>
+              {availableApps.map((app) => (
+                <MenuItem key={app.id} value={app.id}>{app.name} (ID: {app.id})</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </DialogContent>
-        <DialogActions><Button onClick={() => setShowAdd(false)}>Cancel</Button><Button variant="contained" onClick={addAccount}>Create</Button></DialogActions>
+        <DialogActions><Button onClick={() => setShowAdd(false)}>Cancel</Button><Button variant="contained" onClick={addAccount} disabled={!appSelect || !phoneNumber}>Create</Button></DialogActions>
       </Dialog>
 
       <Dialog open={qrOpen} onClose={() => setQrOpen(false)} maxWidth="sm" fullWidth>
