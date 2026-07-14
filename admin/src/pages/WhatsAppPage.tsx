@@ -81,8 +81,6 @@ export default function WhatsAppPage() {
     alert('Message sent!');
   };
 
-  const statusColor = (s: string) => s === 'ready' ? 'success' : s === 'error' ? 'error' : s === 'awaiting_scan' ? 'warning' : 'default';
-
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
@@ -93,13 +91,11 @@ export default function WhatsAppPage() {
       <Table>
         <TableHead><TableRow><TableCell>ID</TableCell><TableCell>Nomor</TableCell><TableCell>Status</TableCell><TableCell>Aplikasi</TableCell><TableCell>Actions</TableCell></TableRow></TableHead>
         <TableBody>
-          {accounts.map((a) => {
-            const st = (a.isActive === false ? 'deactivated' : 'idle');
-            return (
-              <TableRow key={a.id}>
-                <TableCell>{a.id}</TableCell>
-                <TableCell>{a.phoneNumber}</TableCell>
-                <TableCell><Chip label={st} color={statusColor(st) as any} size="small" /></TableCell>
+          {accounts.map((a) => (
+            <TableRow key={a.id}>
+              <TableCell>{a.id}</TableCell>
+              <TableCell>{a.phoneNumber}</TableCell>
+              <TableCell><Chip label={a.isActive !== false ? 'active' : 'inactive'} color={a.isActive !== false ? 'success' : 'default'} size="small" /></TableCell>
                 <TableCell>{a.applicationId}</TableCell>
                 <TableCell>
                   <IconButton onClick={() => openQr(a)} title="QR"><QrIcon /></IconButton>
@@ -107,8 +103,7 @@ export default function WhatsAppPage() {
                   <IconButton onClick={() => deleteAccount(a.id)} title="Hapus"><Delete /></IconButton>
                 </TableCell>
               </TableRow>
-            );
-          })}
+            ))}
           {accounts.length === 0 && <TableRow><TableCell colSpan={5} align="center">No accounts yet</TableCell></TableRow>}
         </TableBody>
       </Table>

@@ -37,7 +37,7 @@ class WhatsAppManager {
   }
 
   async createAccount(applicationId: number, phoneNumber: string): Promise<WhatsAppAccount> {
-    const existing = await this.accountRepo.findOne({ where: { applicationId, isActive: true } });
+    const existing = await this.accountRepo.findOne({ where: { applicationId } });
     if (existing) throw new Error('Application already has a WhatsApp account');
 
     const account = this.accountRepo.create({
@@ -57,8 +57,8 @@ class WhatsAppManager {
       await instance.logout();
       this.instances.delete(accountId);
     }
-    await this.accountRepo.update(accountId, { isActive: false });
-    logger.info(`WhatsAppManager: Account ${accountId} deactivated`);
+    await this.accountRepo.delete(accountId);
+    logger.info(`WhatsAppManager: Account ${accountId} deleted`);
   }
 
   getInstance(accountId: number): WhatsAppInstance {
@@ -82,7 +82,7 @@ class WhatsAppManager {
   }
 
   async listAccounts(applicationId?: number): Promise<WhatsAppAccount[]> {
-    const where: any = { isActive: true };
+    const where: any = {};
     if (applicationId) where.applicationId = applicationId;
     return this.accountRepo.find({ where });
   }
