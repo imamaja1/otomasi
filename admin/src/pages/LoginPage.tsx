@@ -12,7 +12,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   if (admin) {
-    navigate('/admin/dashboard', { replace: true });
+    navigate('/dashboard', { replace: true });
     return null;
   }
 

@@ -13,15 +13,15 @@ import { useAuth } from '../contexts/AuthContext';
 const DRAWER_WIDTH = 240;
 
 const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
-  { text: 'WhatsApp', icon: <WhatsApp />, path: '/admin/whatsapp' },
-  { text: 'Aplikasi', icon: <Apps />, path: '/admin/applications' },
-  { text: 'Pesan', icon: <Message />, path: '/admin/messages' },
-  { text: 'Webhook', icon: <WebhookIcon />, path: '/admin/webhooks' },
-  { text: 'Notifikasi', icon: <Notifications />, path: '/admin/notifications' },
-  { text: 'Scheduler', icon: <Schedule />, path: '/admin/scheduler' },
-  { text: 'AI', icon: <SmartToy />, path: '/admin/ai' },
-  { text: 'Logs', icon: <ReceiptLong />, path: '/admin/logs' },
+  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+  { text: 'WhatsApp', icon: <WhatsApp />, path: '/whatsapp' },
+  { text: 'Aplikasi', icon: <Apps />, path: '/applications' },
+  { text: 'Pesan', icon: <Message />, path: '/messages' },
+  { text: 'Webhook', icon: <WebhookIcon />, path: '/webhooks' },
+  { text: 'Notifikasi', icon: <Notifications />, path: '/notifications' },
+  { text: 'Scheduler', icon: <Schedule />, path: '/scheduler' },
+  { text: 'AI', icon: <SmartToy />, path: '/ai' },
+  { text: 'Logs', icon: <ReceiptLong />, path: '/logs' },
 ];
 
 export default function Layout() {
