@@ -14,23 +14,25 @@ import AiPage from './pages/AiPage';
 import LogsPage from './pages/LogsPage';
 import { Box, CircularProgress } from '@mui/material';
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { admin, loading } = useAuth();
-  if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
-  if (!admin) return <Navigate to="/admin" replace />;
-  return <>{children}</>;
-}
-
 export default function App() {
+  const { admin, loading } = useAuth();
+
+  if (loading) {
+    return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
+  }
+
+  if (!admin) {
+    return (
+      <Routes>
+        <Route path="*" element={<LoginPage />} />
+      </Routes>
+    );
+  }
+
   return (
     <Routes>
-      <Route path="/admin" element={<LoginPage />} />
-      <Route path="/admin/*" element={
-        <ProtectedRoute>
-          <Layout />
-        </ProtectedRoute>
-      }>
-        <Route index element={<Navigate to="/admin/dashboard" replace />} />
+      <Route element={<Layout />}>
+        <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="whatsapp" element={<WhatsAppPage />} />
         <Route path="applications" element={<ApplicationsPage />} />
