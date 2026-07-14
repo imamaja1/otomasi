@@ -11,6 +11,7 @@ export default function WhatsAppPage() {
   const [availableApps, setAvailableApps] = useState<any[]>([]);
   const [qrOpen, setQrOpen] = useState(false);
   const [qrAccount, setQrAccount] = useState<any>(null);
+  const [qrDataUrl, setQrDataUrl] = useState('');
   const [sendOpen, setSendOpen] = useState(false);
   const [sendAccount, setSendAccount] = useState<any>(null);
   const [sendTo, setSendTo] = useState('');
@@ -54,6 +55,16 @@ export default function WhatsAppPage() {
     load();
   };
 
+  const openQr = async (account: any) => {
+    setQrAccount(account);
+    setQrOpen(true);
+    setQrDataUrl('');
+    try {
+      const res = await api.get(`/whatsapp/accounts/${account.id}/qr-image`, { responseType: 'blob' });
+      setQrDataUrl(URL.createObjectURL(res.data));
+    } catch {}
+  };
+
   const sendMessage = async () => {
     await api.post(`/whatsapp/accounts/${sendAccount?.id}/send`, { to: sendTo, message: sendMsg });
     setSendOpen(false);
@@ -83,7 +94,7 @@ export default function WhatsAppPage() {
                 <TableCell><Chip label={st} color={statusColor(st) as any} size="small" /></TableCell>
                 <TableCell>{a.applicationId}</TableCell>
                 <TableCell>
-                  <IconButton onClick={() => { setQrAccount(a); setQrOpen(true); }} title="QR"><QrIcon /></IconButton>
+                  <IconButton onClick={() => openQr(a)} title="QR"><QrIcon /></IconButton>
                   <IconButton onClick={() => { setSendAccount(a); setSendOpen(true); }} title="Kirim"><Send /></IconButton>
                   <IconButton onClick={() => deleteAccount(a.id)} title="Hapus"><Delete /></IconButton>
                 </TableCell>
@@ -113,7 +124,7 @@ export default function WhatsAppPage() {
       <Dialog open={qrOpen} onClose={() => setQrOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>QR Code — {qrAccount?.phoneNumber}</DialogTitle>
         <DialogContent sx={{ textAlign: 'center' }}>
-          {qrAccount && <img src={`/api/v1/whatsapp/accounts/${qrAccount.id}/qr-image`} alt="QR" style={{ maxWidth: '100%' }} />}
+          {qrDataUrl ? <img src={qrDataUrl} alt="QR" style={{ maxWidth: '100%' }} /> : 'Loading QR...'}
         </DialogContent>
         <DialogActions><Button onClick={() => setQrOpen(false)}>Close</Button></DialogActions>
       </Dialog>
