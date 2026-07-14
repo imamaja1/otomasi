@@ -12,6 +12,7 @@ export default function WhatsAppPage() {
   const [qrOpen, setQrOpen] = useState(false);
   const [qrAccount, setQrAccount] = useState<any>(null);
   const [qrDataUrl, setQrDataUrl] = useState('');
+  const [qrError, setQrError] = useState('');
   const [sendOpen, setSendOpen] = useState(false);
   const [sendAccount, setSendAccount] = useState<any>(null);
   const [sendTo, setSendTo] = useState('');
@@ -59,10 +60,13 @@ export default function WhatsAppPage() {
     setQrAccount(account);
     setQrOpen(true);
     setQrDataUrl('');
+    setQrError('');
     try {
       const res = await api.get(`/whatsapp/accounts/${account.id}/qr-image`, { responseType: 'blob' });
       setQrDataUrl(URL.createObjectURL(res.data));
-    } catch {}
+    } catch (err: any) {
+      setQrError(err.response?.status === 404 ? 'QR not available. Restart server or wait for QR generation.' : 'Failed to load QR.');
+    }
   };
 
   const sendMessage = async () => {
@@ -124,7 +128,7 @@ export default function WhatsAppPage() {
       <Dialog open={qrOpen} onClose={() => setQrOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>QR Code — {qrAccount?.phoneNumber}</DialogTitle>
         <DialogContent sx={{ textAlign: 'center' }}>
-          {qrDataUrl ? <img src={qrDataUrl} alt="QR" style={{ maxWidth: '100%' }} /> : 'Loading QR...'}
+          {qrDataUrl ? <img src={qrDataUrl} alt="QR" style={{ maxWidth: '100%' }} /> : qrError ? <Typography color="error">{qrError}</Typography> : 'Loading...'}
         </DialogContent>
         <DialogActions><Button onClick={() => setQrOpen(false)}>Close</Button></DialogActions>
       </Dialog>
