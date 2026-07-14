@@ -37,7 +37,7 @@ class WhatsAppManager {
   }
 
   async createAccount(applicationId: number, phoneNumber: string): Promise<WhatsAppAccount> {
-    const existing = await this.accountRepo.findOne({ where: { applicationId } });
+    const existing = await this.accountRepo.findOne({ where: { applicationId, isActive: true } });
     if (existing) throw new Error('Application already has a WhatsApp account');
 
     const account = this.accountRepo.create({
