@@ -62,8 +62,9 @@ export default function WhatsAppPage() {
     setQrDataUrl('');
     setQrError('');
     try {
-      const res = await api.get(`/whatsapp/accounts/${account.id}/qr-image`, { responseType: 'blob' });
-      setQrDataUrl(URL.createObjectURL(res.data));
+      const res = await api.get(`/whatsapp/accounts/${account.id}/qr-image`, { responseType: 'arraybuffer' });
+      const blob = new Blob([res.data], { type: 'image/png' });
+      setQrDataUrl(URL.createObjectURL(blob));
     } catch (err: any) {
       setQrError(err.response?.status === 404 ? 'QR not available. Restart server or wait for QR generation.' : 'Failed to load QR.');
     }
