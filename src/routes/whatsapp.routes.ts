@@ -66,8 +66,12 @@ export async function whatsappRoutes(app: FastifyInstance) {
     const account = await whatsappManager.getAccountById(accountId);
     if (!account) return reply.code(404).send({ error: 'Account not found' });
     if (!isOwnerOrAdmin(req, account)) return reply.code(403).send({ error: 'Not your account' });
-    const instance = whatsappManager.getInstance(accountId);
-    return reply.send(instance.getQr());
+    try {
+      const instance = whatsappManager.getInstance(accountId);
+      return reply.send(instance.getQr());
+    } catch {
+      return reply.code(503).send({ error: 'WhatsApp instance not initialized' });
+    }
   });
 
   app.get('/api/v1/whatsapp/accounts/:accountId/qr-image', { preHandler: apiKeyAuth }, async (req: FastifyRequest, reply: any) => {
@@ -75,10 +79,14 @@ export async function whatsappRoutes(app: FastifyInstance) {
     const account = await whatsappManager.getAccountById(accountId);
     if (!account) return reply.code(404).send({ error: 'Account not found' });
     if (!isOwnerOrAdmin(req, account)) return reply.code(403).send({ error: 'Not your account' });
-    const instance = whatsappManager.getInstance(accountId);
-    const image = await instance.getQrImage();
-    if (!image) return reply.code(404).send({ error: 'QR not available' });
-    return reply.type('image/png').send(image);
+    try {
+      const instance = whatsappManager.getInstance(accountId);
+      const image = await instance.getQrImage();
+      if (!image) return reply.code(404).send({ error: 'QR not available' });
+      return reply.type('image/png').send(image);
+    } catch {
+      return reply.code(503).send({ error: 'WhatsApp instance not initialized' });
+    }
   });
 
   app.get('/api/v1/whatsapp/accounts/:accountId/status', { preHandler: apiKeyAuth }, async (req: FastifyRequest, reply: FastifyReply) => {
@@ -86,8 +94,12 @@ export async function whatsappRoutes(app: FastifyInstance) {
     const account = await whatsappManager.getAccountById(accountId);
     if (!account) return reply.code(404).send({ error: 'Account not found' });
     if (!isOwnerOrAdmin(req, account)) return reply.code(403).send({ error: 'Not your account' });
-    const instance = whatsappManager.getInstance(accountId);
-    return reply.send(instance.getStatus());
+    try {
+      const instance = whatsappManager.getInstance(accountId);
+      return reply.send(instance.getStatus());
+    } catch {
+      return reply.code(503).send({ error: 'WhatsApp instance not initialized' });
+    }
   });
 
   app.post('/api/v1/whatsapp/accounts/:accountId/send', { preHandler: apiKeyAuth }, async (req: FastifyRequest, reply: FastifyReply) => {
@@ -97,12 +109,16 @@ export async function whatsappRoutes(app: FastifyInstance) {
     const account = await whatsappManager.getAccountById(accountId);
     if (!account) return reply.code(404).send({ error: 'Account not found' });
     if (!isOwnerOrAdmin(req, account)) return reply.code(403).send({ error: 'Not your account' });
-    const instance = whatsappManager.getInstance(accountId);
-    const result = await whatsappService.sendMessage(to, message, accountId, instance.phoneNumber);
-    if (result.status === 'pending') {
-      try { await queueManager.addJob(QueueName.WHATSAPP, 'send_message', { to, message, messageId: result.id, accountId }); } catch {}
+    try {
+      const instance = whatsappManager.getInstance(accountId);
+      const result = await whatsappService.sendMessage(to, message, accountId, instance.phoneNumber);
+      if (result.status === 'pending') {
+        try { await queueManager.addJob(QueueName.WHATSAPP, 'send_message', { to, message, messageId: result.id, accountId }); } catch {}
+      }
+      return reply.code(201).send(result);
+    } catch (err: any) {
+      return reply.code(503).send({ error: err.message || 'WhatsApp instance not initialized' });
     }
-    return reply.code(201).send(result);
   });
 
   app.get('/api/v1/whatsapp/qr-image', { preHandler: apiKeyAuth }, async (_req, reply: any) => {
