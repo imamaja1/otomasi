@@ -55,8 +55,12 @@ export class WebhookService {
     return saved;
   }
 
-  async listWebhooks(page: number = 1, limit: number = 20): Promise<{ data: Webhook[]; total: number }> {
+  async listWebhooks(page: number = 1, limit: number = 20, source?: string, applicationId?: number): Promise<{ data: Webhook[]; total: number }> {
+    const where: any = {};
+    if (source) where.source = source;
+    if (applicationId) where.applicationId = applicationId;
     const [data, total] = await this.webhookRepo.findAndCount({
+      where,
       order: { createdAt: 'DESC' },
       take: limit,
       skip: (page - 1) * limit,

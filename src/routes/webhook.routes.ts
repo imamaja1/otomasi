@@ -16,15 +16,18 @@ export async function webhookRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: 'event and source are required' });
     }
 
-    const result = await webhookService.receive(event, source, data || {});
+    const applicationId = (req as any).application?.id;
+    const result = await webhookService.receive(event, source, data || {}, applicationId);
     return reply.code(201).send(result);
   });
 
   app.get('/api/v1/webhook', { preHandler: apiKeyAuth }, async (req: FastifyRequest, reply: FastifyReply) => {
-    const { page, limit } = req.query as { page?: string; limit?: string };
+    const { page, limit, source, applicationId } = req.query as { page?: string; limit?: string; source?: string; applicationId?: string };
     const result = await webhookService.listWebhooks(
       page ? parseInt(page) : 1,
       limit ? parseInt(limit) : 20,
+      source,
+      applicationId ? parseInt(applicationId) : undefined,
     );
     return reply.send(result);
   });
