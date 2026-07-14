@@ -32,17 +32,18 @@ export default function MessagesPage() {
         </Select>
       </FormControl>
       <Table size="small">
-        <TableHead><TableRow><TableCell>To</TableCell><TableCell>Message</TableCell><TableCell>Status</TableCell><TableCell>Date</TableCell></TableRow></TableHead>
+        <TableHead><TableRow><TableCell>To</TableCell><TableCell>Message</TableCell><TableCell>Status</TableCell><TableCell>Error</TableCell><TableCell>Date</TableCell></TableRow></TableHead>
         <TableBody>
           {data.map((m) => (
             <TableRow key={m.id}>
               <TableCell>{m.toNumber || m.to}</TableCell>
-              <TableCell sx={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.message || m.body}</TableCell>
+              <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.message || m.body}</TableCell>
               <TableCell><Chip label={m.status} color={statusColor(m.status) as any} size="small" /></TableCell>
+              <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'error.main', fontSize: 12 }}>{m.error || '-'}</TableCell>
               <TableCell>{new Date(m.createdAt).toLocaleString()}</TableCell>
             </TableRow>
           ))}
-          {data.length === 0 && <TableRow><TableCell colSpan={4} align="center">No messages</TableCell></TableRow>}
+          {data.length === 0 && <TableRow><TableCell colSpan={5} align="center">No messages</TableCell></TableRow>}
         </TableBody>
       </Table>
     </Box>
