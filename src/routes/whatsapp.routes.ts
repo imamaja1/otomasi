@@ -6,6 +6,11 @@ import { WhatsAppMessage } from '../modules/whatsapp/entities/whatsapp-message.e
 import { queueManager, QueueName } from '../modules/queue/queue.manager';
 import { apiKeyAuth } from '../middleware/api-key.middleware';
 
+function isOwnerOrAdmin(req: any, account: any) {
+  if (req.admin) return true;
+  return account.applicationId === req.application?.id;
+}
+
 export async function whatsappRoutes(app: FastifyInstance) {
   app.get('/api/v1/whatsapp/messages', { preHandler: apiKeyAuth }, async (req: FastifyRequest, reply: FastifyReply) => {
     const repo = AppDataSource.getRepository(WhatsAppMessage);
@@ -43,8 +48,7 @@ export async function whatsappRoutes(app: FastifyInstance) {
     const accountId = parseInt((req.params as any).accountId);
     const account = await whatsappManager.getAccountById(accountId);
     if (!account) return reply.code(404).send({ error: 'Account not found' });
-    const appId = (req as any).application?.id;
-    if (account.applicationId !== appId) return reply.code(403).send({ error: 'Not your account' });
+    if (!isOwnerOrAdmin(req, account)) return reply.code(403).send({ error: 'Not your account' });
     return reply.send(account);
   });
 
@@ -52,8 +56,7 @@ export async function whatsappRoutes(app: FastifyInstance) {
     const accountId = parseInt((req.params as any).accountId);
     const account = await whatsappManager.getAccountById(accountId);
     if (!account) return reply.code(404).send({ error: 'Account not found' });
-    const appId = (req as any).application?.id;
-    if (account.applicationId !== appId) return reply.code(403).send({ error: 'Not your account' });
+    if (!isOwnerOrAdmin(req, account)) return reply.code(403).send({ error: 'Not your account' });
     await whatsappManager.deleteAccount(accountId);
     return reply.send({ message: `Account ${accountId} deactivated` });
   });
@@ -62,8 +65,7 @@ export async function whatsappRoutes(app: FastifyInstance) {
     const accountId = parseInt((req.params as any).accountId);
     const account = await whatsappManager.getAccountById(accountId);
     if (!account) return reply.code(404).send({ error: 'Account not found' });
-    const appId = (req as any).application?.id;
-    if (account.applicationId !== appId) return reply.code(403).send({ error: 'Not your account' });
+    if (!isOwnerOrAdmin(req, account)) return reply.code(403).send({ error: 'Not your account' });
     const instance = whatsappManager.getInstance(accountId);
     return reply.send(instance.getQr());
   });
@@ -72,8 +74,7 @@ export async function whatsappRoutes(app: FastifyInstance) {
     const accountId = parseInt((req.params as any).accountId);
     const account = await whatsappManager.getAccountById(accountId);
     if (!account) return reply.code(404).send({ error: 'Account not found' });
-    const appId = (req as any).application?.id;
-    if (account.applicationId !== appId) return reply.code(403).send({ error: 'Not your account' });
+    if (!isOwnerOrAdmin(req, account)) return reply.code(403).send({ error: 'Not your account' });
     const instance = whatsappManager.getInstance(accountId);
     const image = await instance.getQrImage();
     if (!image) return reply.code(404).send({ error: 'QR not available' });
@@ -84,8 +85,7 @@ export async function whatsappRoutes(app: FastifyInstance) {
     const accountId = parseInt((req.params as any).accountId);
     const account = await whatsappManager.getAccountById(accountId);
     if (!account) return reply.code(404).send({ error: 'Account not found' });
-    const appId = (req as any).application?.id;
-    if (account.applicationId !== appId) return reply.code(403).send({ error: 'Not your account' });
+    if (!isOwnerOrAdmin(req, account)) return reply.code(403).send({ error: 'Not your account' });
     const instance = whatsappManager.getInstance(accountId);
     return reply.send(instance.getStatus());
   });
@@ -96,8 +96,7 @@ export async function whatsappRoutes(app: FastifyInstance) {
     const accountId = parseInt((req.params as any).accountId);
     const account = await whatsappManager.getAccountById(accountId);
     if (!account) return reply.code(404).send({ error: 'Account not found' });
-    const appId = (req as any).application?.id;
-    if (account.applicationId !== appId) return reply.code(403).send({ error: 'Not your account' });
+    if (!isOwnerOrAdmin(req, account)) return reply.code(403).send({ error: 'Not your account' });
     const instance = whatsappManager.getInstance(accountId);
     const result = await whatsappService.sendMessage(to, message, accountId, instance.phoneNumber);
     if (result.status === 'pending') {
