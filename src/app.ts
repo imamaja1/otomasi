@@ -65,7 +65,7 @@ export async function buildApp() {
   await app.register(recommendationRoutes);
   await app.register(adminRoutes);
 
-  const adminDist = path.join(__dirname, '..', 'dist-admin');
+  const adminDist = path.resolve(__dirname, '..', 'dist-admin');
   await app.register(fastifyStatic, {
     root: adminDist,
     prefix: '/admin/',
